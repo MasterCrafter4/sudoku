@@ -1,37 +1,54 @@
 package com.app.sudoku.presentation.screens.sudoku.components
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@Suppress("ktlint:standard:function-naming")
+// SudokuCell.kt
 @Composable
 fun SudokuCell(
     row: Int,
     col: Int,
     value: Int?,
-    updatePuzzleCell: (row: Int, col: Int, value: Int?) -> Unit,
+    isOriginal: Boolean,
+    isSelected: Boolean,
+    onCellClick: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = value?.toString() ?: "",
-        onValueChange = { newValue ->
-            val intValue = newValue.toIntOrNull()
-            if (intValue != null || newValue.isEmpty()) {
-                updatePuzzleCell(row, col, if (newValue.isEmpty()) null else intValue)
+    val backgroundColor = when {
+        isOriginal -> Color.LightGray
+        isSelected -> Color(0xFFE0E0E0)
+        else -> Color.White
+    }
+
+    Box(
+        modifier = modifier
+            .border(1.dp, Color.Black)
+            .clickable(enabled = !isOriginal) {
+                onCellClick(row, col)
             }
-        },
-        enabled = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            color = Color.Black
-        ),
-        modifier = modifier.fillMaxSize()
-    )
+            .background(backgroundColor)
+    ) {
+        if (value != null) {
+            Text(
+                text = value.toString(),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    color = if (isOriginal) Color.Black else Color.Red
+                ),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
 }

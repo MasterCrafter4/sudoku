@@ -9,7 +9,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SudokuBoard(
     puzzle: List<List<Int?>>,
-    updatePuzzleCell: (row: Int, col: Int, value: Int?) -> Unit,
+    originalPuzzle: List<List<Int?>>,
+    selectedCell: Pair<Int, Int>?,
+    onCellClick: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -27,7 +29,9 @@ fun SudokuBoard(
                         row = rowIndex,
                         col = colIndex,
                         value = cell,
-                        updatePuzzleCell = updatePuzzleCell,
+                        isOriginal = originalPuzzle[rowIndex][colIndex] != null,
+                        isSelected = selectedCell?.first == rowIndex && selectedCell.second == colIndex,
+                        onCellClick = onCellClick,
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)

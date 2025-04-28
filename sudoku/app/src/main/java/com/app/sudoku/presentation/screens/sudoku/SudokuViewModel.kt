@@ -12,14 +12,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// SudokuViewModel.kt
 @HiltViewModel
-class SudokuViewModel
-@Inject
-constructor(
+class SudokuViewModel @Inject constructor(
     private val getSudokuPuzzleUseCase: GetSudokuPuzzleUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SudokuUiState())
     val uiState: StateFlow<SudokuUiState> = _uiState.asStateFlow()
+
+    init {
+        loadPuzzle(9, 9, "easy")
+    }
 
     fun loadPuzzle(width: Int, height: Int, difficulty: String) {
         viewModelScope.launch {
@@ -31,6 +34,7 @@ constructor(
                         is Result.Success ->
                             state.copy(
                                 puzzle = result.data.puzzle,
+                                originalPuzzle = result.data.puzzle,
                                 solution = result.data.solution,
                                 width = result.data.width,
                                 height = result.data.height,
@@ -38,6 +42,7 @@ constructor(
                                 isLoading = false,
                                 error = null,
                                 completed = false,
+                                selectedCell = null
                             )
                         is Result.Error ->
                             state.copy(isLoading = false, error = result.exception.message)
@@ -49,6 +54,10 @@ constructor(
 
     fun updateCell(row: Int, col: Int, value: Int?) {
         _uiState.update { state ->
+            if (state.originalPuzzle[row][col] != null) {
+                return@update state
+            }
+
             val updatedGrid = state.puzzle.mapIndexed { r, rowList ->
                 rowList.mapIndexed { c, cell ->
                     if (r == row && c == col) value else cell
@@ -59,7 +68,27 @@ constructor(
         }
     }
 
+    fun onCellSelected(row: Int, col: Int) {
+        _uiState.update { state ->
+            if (state.originalPuzzle[row][col] == null) {
+                state.copy(selectedCell = Pair(row, col))
+            } else {
+                state
+            }
+        }
+    }
+
+    fun onNumberSelected(number: Int) {
+        _uiState.value.selectedCell?.let { (row, col) ->
+            updateCell(row, col, number)
+        }
+    }
+
     fun restartPuzzle() {
+        loadPuzzle(uiState.value.width, uiState.value.height, uiState.value.difficulty)
+    }
+
+    fun newPuzzle() {
         loadPuzzle(uiState.value.width, uiState.value.height, uiState.value.difficulty)
     }
 }
